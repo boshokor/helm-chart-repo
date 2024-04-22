@@ -1,0 +1,56 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "dsw-helmchart.fullname" . }}-mailer
+  labels:
+    io.kompose.service: mailer
+  {{- include "dsw-helmchart.labels" . | nindent 4 }}
+  annotations:
+    kompose.cmd: /home/mouhamed/kompose --file ../docker-compose.yml convert --volumes
+      hostPath
+    kompose.service.nodeport.port: "30002"
+    kompose.service.type: nodeport
+    kompose.version: 1.32.0 (765fde254)
+    kompose.volume.size: 500Mi
+spec:
+  replicas: {{ .Values.mailer.replicas }}
+  selector:
+    matchLabels:
+      io.kompose.service: mailer
+    {{- include "dsw-helmchart.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        io.kompose.network/dsw-deployment-example-default: "true"
+        io.kompose.service: mailer
+      {{- include "dsw-helmchart.selectorLabels" . | nindent 8 }}
+      annotations:
+        kompose.cmd: /home/mouhamed/kompose --file ../docker-compose.yml convert --volumes
+          hostPath
+        kompose.service.nodeport.port: "30002"
+        kompose.service.type: nodeport
+        kompose.version: 1.32.0 (765fde254)
+        kompose.volume.size: 500Mi
+    spec:
+      containers:
+      - env:
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ quote .Values.kubernetesClusterDomain }}
+        image: {{ .Values.mailer.mailer.image.repository }}:{{ .Values.mailer.mailer.image.tag
+          | default .Chart.AppVersion }}
+        name: mailer
+        ports:
+        - containerPort: 5431
+          hostIP: 127.0.0.1
+          hostPort: 5431
+          protocol: TCP
+        resources: {}
+        volumeMounts:
+        - mountPath: /app/config/application.yml
+          name: mailer-hostpath0
+          readOnly: true
+      restartPolicy: Always
+      volumes:
+      - hostPath:
+          path: /home/mouhamed/PycharmProjects/dsw-deployment-example/config/application.yml
+        name: mailer-hostpath0

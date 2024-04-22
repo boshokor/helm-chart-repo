@@ -1,0 +1,20 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "dsw-helmchart.fullname" . }}-dsw-client
+  labels:
+    io.kompose.service: dsw-client
+  {{- include "dsw-helmchart.labels" . | nindent 4 }}
+  annotations:
+    kompose.cmd: /home/mouhamed/kompose --file ../docker-compose.yml convert --volumes
+      hostPath
+    kompose.service.nodeport.port: "30001"
+    kompose.service.type: nodeport
+    kompose.version: 1.32.0 (765fde254)
+spec:
+  type: {{ .Values.dswClient.type }}
+  selector:
+    io.kompose.service: dsw-client
+  {{- include "dsw-helmchart.selectorLabels" . | nindent 4 }}
+  ports:
+	{{- .Values.dswClient.ports | toYaml | nindent 2 }}

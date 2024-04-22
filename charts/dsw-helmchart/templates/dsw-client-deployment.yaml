@@ -1,0 +1,48 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "dsw-helmchart.fullname" . }}-dsw-client
+  labels:
+    io.kompose.service: dsw-client
+  {{- include "dsw-helmchart.labels" . | nindent 4 }}
+  annotations:
+    kompose.cmd: /home/mouhamed/kompose --file ../docker-compose.yml convert --volumes
+      hostPath
+    kompose.service.nodeport.port: "30001"
+    kompose.service.type: nodeport
+    kompose.version: 1.32.0 (765fde254)
+spec:
+  replicas: {{ .Values.dswClient.replicas }}
+  selector:
+    matchLabels:
+      io.kompose.service: dsw-client
+    {{- include "dsw-helmchart.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        io.kompose.network/dsw-deployment-example-default: "true"
+        io.kompose.service: dsw-client
+      {{- include "dsw-helmchart.selectorLabels" . | nindent 8 }}
+      annotations:
+        kompose.cmd: /home/mouhamed/kompose --file ../docker-compose.yml convert --volumes
+          hostPath
+        kompose.service.nodeport.port: "30001"
+        kompose.service.type: nodeport
+        kompose.version: 1.32.0 (765fde254)
+    spec:
+      containers:
+      - env:
+        - name: API_URL
+          value: {{ quote .Values.dswClient.dswClient.env.apiUrl }}
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ quote .Values.kubernetesClusterDomain }}
+        image: {{ .Values.dswClient.dswClient.image.repository }}:{{ .Values.dswClient.dswClient.image.tag
+          | default .Chart.AppVersion }}
+        name: dsw-client
+        ports:
+        - containerPort: 8080
+          hostIP: 127.0.0.1
+          hostPort: 8080
+          protocol: TCP
+        resources: {}
+      restartPolicy: Always

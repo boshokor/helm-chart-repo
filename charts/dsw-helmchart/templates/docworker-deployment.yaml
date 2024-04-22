@@ -1,0 +1,52 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "dsw-helmchart.fullname" . }}-docworker
+  labels:
+    io.kompose.service: docworker
+  {{- include "dsw-helmchart.labels" . | nindent 4 }}
+  annotations:
+    kompose.cmd: /home/mouhamed/kompose --file ../docker-compose.yml convert --volumes
+      hostPath
+    kompose.version: 1.32.0 (765fde254)
+    kompose.volume.size: 500Mi
+spec:
+  replicas: {{ .Values.docworker.replicas }}
+  selector:
+    matchLabels:
+      io.kompose.service: docworker
+    {{- include "dsw-helmchart.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        io.kompose.network/dsw-deployment-example-default: "true"
+        io.kompose.service: docworker
+      {{- include "dsw-helmchart.selectorLabels" . | nindent 8 }}
+      annotations:
+        kompose.cmd: /home/mouhamed/kompose --file ../docker-compose.yml convert --volumes
+          hostPath
+        kompose.version: 1.32.0 (765fde254)
+        kompose.volume.size: 500Mi
+    spec:
+      containers:
+      - env:
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ quote .Values.kubernetesClusterDomain }}
+        image: {{ .Values.docworker.docworker.image.repository }}:{{ .Values.docworker.docworker.image.tag
+          | default .Chart.AppVersion }}
+        name: docworker
+        ports:
+        - containerPort: 5430
+          hostIP: 127.0.0.1
+          hostPort: 5430
+          protocol: TCP
+        resources: {}
+        volumeMounts:
+        - mountPath: /app/config/application.yml
+          name: docworker-hostpath0
+          readOnly: true
+      restartPolicy: Always
+      volumes:
+      - hostPath:
+          path: /home/mouhamed/PycharmProjects/dsw-deployment-example/config/application.yml
+        name: docworker-hostpath0

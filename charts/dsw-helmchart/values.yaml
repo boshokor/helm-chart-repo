@@ -1,0 +1,93 @@
+docworker:
+  docworker:
+    image:
+      repository: datastewardshipwizard/document-worker
+      tag: "4.5"
+  ports:
+  - name: "5430"
+    port: 5430
+    targetPort: 5430
+  replicas: 1
+  type: ClusterIP
+dswClient:
+  dswClient:
+    env:
+      apiUrl: http://localhost:3001/wizard-api
+    image:
+      repository: datastewardshipwizard/wizard-client
+      tag: "4.5"
+  ports:
+  - name: "8080"
+    nodePort: 30001
+    port: 8080
+    targetPort: 8080
+  replicas: 1
+  type: NodePort
+dswServer:
+  dswServer:
+    image:
+      repository: datastewardshipwizard/wizard-server
+      tag: "4.5"
+  ports:
+  - name: "3000"
+    port: 3000
+    targetPort: 3000
+  replicas: 1
+  type: ClusterIP
+kubernetesClusterDomain: cluster.local
+mailer:
+  mailer:
+    image:
+      repository: datastewardshipwizard/mailer
+      tag: "4.5"
+  ports:
+  - name: "5431"
+    nodePort: 30002
+    port: 5431
+    targetPort: 5431
+  replicas: 1
+  type: NodePort
+minio:
+  minio:
+    args:
+    - server
+    - /data
+    - --console-address
+    - :9001
+    env:
+      minioRootPassword: minioPassword
+      minioRootUser: minio
+    image:
+      repository: minio/minio
+      tag: RELEASE.2022-02-24T22-12-01Z
+  ports:
+  - name: "9000"
+    port: 9000
+    targetPort: 9000
+  - name: "9001"
+    port: 9001
+    targetPort: 9001
+  replicas: 1
+  type: ClusterIP
+postgres:
+  ports:
+  - name: "5432"
+    port: 5432
+    targetPort: 5432
+  postgres:
+    env:
+      postgresDb: engine-wizard
+      postgresPassword: postgres
+      postgresUser: postgres
+    image:
+      repository: postgres
+      tag: "15.6"
+  replicas: 1
+  type: ClusterIP
+pvc:
+  docworkerClaim0:
+    storageRequest: 100Mi
+  dswServerClaim0:
+    storageRequest: 100Mi
+  mailerClaim0:
+    storageRequest: 100Mi
