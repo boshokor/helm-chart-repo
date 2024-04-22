@@ -1,0 +1,13 @@
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: {{ include "dsw-helmchart.fullname" . }}-mailer-claim0
+  labels:
+    io.kompose.service: mailer-claim0
+  {{- include "dsw-helmchart.labels" . | nindent 4 }}
+spec:
+  accessModes:
+  - ReadOnlyMany
+  resources:
+    requests:
+      storage: {{ .Values.pvc.mailerClaim0.storageRequest | quote }}

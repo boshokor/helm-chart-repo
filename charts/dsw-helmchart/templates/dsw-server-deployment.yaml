@@ -1,0 +1,51 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "dsw-helmchart.fullname" . }}-dsw-server
+  labels:
+    io.kompose.service: dsw-server
+  {{- include "dsw-helmchart.labels" . | nindent 4 }}
+  annotations:
+    kompose.cmd: /home/mouhamed/kompose --file ../docker-compose.yml convert --volumes
+      hostPath
+    kompose.version: 1.32.0 (765fde254)
+    kompose.volume.size: 200Mi
+spec:
+  replicas: {{ .Values.dswServer.replicas }}
+  selector:
+    matchLabels:
+      io.kompose.service: dsw-server
+    {{- include "dsw-helmchart.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        io.kompose.network/dsw-deployment-example-default: "true"
+        io.kompose.service: dsw-server
+      {{- include "dsw-helmchart.selectorLabels" . | nindent 8 }}
+      annotations:
+        kompose.cmd: /home/mouhamed/kompose --file ../docker-compose.yml convert --volumes
+          hostPath
+        kompose.version: 1.32.0 (765fde254)
+        kompose.volume.size: 200Mi
+    spec:
+      containers:
+      - env:
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ quote .Values.kubernetesClusterDomain }}
+        image: {{ .Values.dswServer.dswServer.image.repository }}:{{ .Values.dswServer.dswServer.image.tag
+          | default .Chart.AppVersion }}
+        name: dsw-server
+        ports:
+        - containerPort: 3000
+          hostIP: 127.0.0.1
+          hostPort: 3000
+          protocol: TCP
+        resources: {}
+        volumeMounts:
+        - mountPath: /app/config
+          name: dsw-server-hostpath0
+      restartPolicy: Always
+      volumes:
+      - hostPath:
+          path: /home/mouhamed/PycharmProjects/dsw-deployment-example/config
+        name: dsw-server-hostpath0

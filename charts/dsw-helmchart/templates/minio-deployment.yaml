@@ -1,0 +1,58 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "dsw-helmchart.fullname" . }}-minio
+  labels:
+    io.kompose.service: minio
+  {{- include "dsw-helmchart.labels" . | nindent 4 }}
+  annotations:
+    kompose.cmd: /home/mouhamed/kompose --file ../docker-compose.yml convert --volumes
+      hostPath
+    kompose.version: 1.32.0 (765fde254)
+    kompose.volume.size: 1Gi
+spec:
+  replicas: {{ .Values.minio.replicas }}
+  selector:
+    matchLabels:
+      io.kompose.service: minio
+    {{- include "dsw-helmchart.selectorLabels" . | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        io.kompose.network/dsw-deployment-example-default: "true"
+        io.kompose.service: minio
+      {{- include "dsw-helmchart.selectorLabels" . | nindent 8 }}
+      annotations:
+        kompose.cmd: /home/mouhamed/kompose --file ../docker-compose.yml convert --volumes
+          hostPath
+        kompose.version: 1.32.0 (765fde254)
+        kompose.volume.size: 1Gi
+    spec:
+      containers:
+      - args: {{- toYaml .Values.minio.minio.args | nindent 8 }}
+        env:
+        - name: MINIO_ROOT_PASSWORD
+          value: {{ quote .Values.minio.minio.env.minioRootPassword }}
+        - name: MINIO_ROOT_USER
+          value: {{ quote .Values.minio.minio.env.minioRootUser }}
+        - name: KUBERNETES_CLUSTER_DOMAIN
+          value: {{ quote .Values.kubernetesClusterDomain }}
+        image: {{ .Values.minio.minio.image.repository }}:{{ .Values.minio.minio.image.tag
+          | default .Chart.AppVersion }}
+        name: minio
+        ports:
+        - containerPort: 9000
+          hostPort: 9000
+          protocol: TCP
+        - containerPort: 9001
+          hostPort: 9001
+          protocol: TCP
+        resources: {}
+        volumeMounts:
+        - mountPath: /data
+          name: minio-hostpath0
+      restartPolicy: Always
+      volumes:
+      - hostPath:
+          path: /home/mouhamed/PycharmProjects/dsw-deployment-example/s3-data/data
+        name: minio-hostpath0

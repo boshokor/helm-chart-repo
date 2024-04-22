@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "dsw-helmchart.fullname" . }}-dsw-server
+  labels:
+    io.kompose.service: dsw-server
+  {{- include "dsw-helmchart.labels" . | nindent 4 }}
+  annotations:
+    kompose.cmd: /home/mouhamed/kompose --file ../docker-compose.yml convert --volumes
+      hostPath
+    kompose.version: 1.32.0 (765fde254)
+    kompose.volume.size: 200Mi
+spec:
+  type: {{ .Values.dswServer.type }}
+  selector:
+    io.kompose.service: dsw-server
+  {{- include "dsw-helmchart.selectorLabels" . | nindent 4 }}
+  ports:
+	{{- .Values.dswServer.ports | toYaml | nindent 2 }}

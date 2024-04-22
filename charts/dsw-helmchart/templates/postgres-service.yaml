@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "dsw-helmchart.fullname" . }}-postgres
+  labels:
+    io.kompose.service: postgres
+  {{- include "dsw-helmchart.labels" . | nindent 4 }}
+  annotations:
+    kompose.cmd: /home/mouhamed/kompose --file ../docker-compose.yml convert --volumes
+      hostPath
+    kompose.version: 1.32.0 (765fde254)
+    kompose.volume.size: 3Gi
+spec:
+  type: {{ .Values.postgres.type }}
+  selector:
+    io.kompose.service: postgres
+  {{- include "dsw-helmchart.selectorLabels" . | nindent 4 }}
+  ports:
+	{{- .Values.postgres.ports | toYaml | nindent 2 }}

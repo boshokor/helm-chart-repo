@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "dsw-helmchart.fullname" . }}-minio
+  labels:
+    io.kompose.service: minio
+  {{- include "dsw-helmchart.labels" . | nindent 4 }}
+  annotations:
+    kompose.cmd: /home/mouhamed/kompose --file ../docker-compose.yml convert --volumes
+      hostPath
+    kompose.version: 1.32.0 (765fde254)
+    kompose.volume.size: 1Gi
+spec:
+  type: {{ .Values.minio.type }}
+  selector:
+    io.kompose.service: minio
+  {{- include "dsw-helmchart.selectorLabels" . | nindent 4 }}
+  ports:
+	{{- .Values.minio.ports | toYaml | nindent 2 }}
